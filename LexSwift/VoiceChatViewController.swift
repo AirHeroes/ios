@@ -18,7 +18,7 @@ import AWSLex
 import UIKit
 
 
-class VoiceChatViewController: UIViewController, AWSLexVoiceButtonDelegate {
+class VoiceChatViewController: UIViewController, AWSLexVoiceButtonDelegate, AWSLexAudioPlayerDelegate {
     
     @IBOutlet weak var voiceButton: AWSLexVoiceButton!
     @IBOutlet weak var input: UILabel!
@@ -28,6 +28,7 @@ class VoiceChatViewController: UIViewController, AWSLexVoiceButtonDelegate {
         super.viewDidLoad()
         (self.voiceButton as AWSLexVoiceButton).delegate = self
         startMonitoring()
+        AWSLexInteractionKit.init(forKey: "AWSLexVoiceButton").audioPlayerDelegate = self
     }
     
     func voiceButton(_ button: AWSLexVoiceButton, on response: AWSLexVoiceButtonResponse) {
@@ -41,7 +42,6 @@ class VoiceChatViewController: UIViewController, AWSLexVoiceButtonDelegate {
             }
             print("on text output \(response.outputText)")
             self.output.text = response.outputText
-        
         })
     }
     
@@ -49,6 +49,10 @@ class VoiceChatViewController: UIViewController, AWSLexVoiceButtonDelegate {
         startMonitoring()
     }
 
+    public func interactionKit(onAudioPlaybackFinished interactionKit: AWSLexInteractionKit) {
+        startMonitoring()
+    }
+    
     func startMonitoring() {
         (self.voiceButton as AWSLexVoiceButton).performSelector(onMainThread: "startMonitoring:", with: nil, waitUntilDone: true)
     }
