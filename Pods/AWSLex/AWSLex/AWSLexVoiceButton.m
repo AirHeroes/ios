@@ -41,7 +41,7 @@ static NSString *BackgroundLayerStrokeColorUserInfoKey = @"backgroundLayer.strok
     float red = ((hexValue & 0xFF0000) >> 16) / 255.0f;
     float green = ((hexValue & 0xFF00) >> 8) / 255.0f;
     float blue = (hexValue & 0xFF) / 255.0f;
-
+    
     return [UIColor colorWithRed:red green:green blue:blue alpha:1.0];
 }
 
@@ -203,22 +203,21 @@ static NSString *BackgroundLayerStrokeColorUserInfoKey = @"backgroundLayer.strok
         imageButton = [[UIButton alloc]initWithFrame:CGRectMake(0, 0, SIZE, SIZE)];
         NSBundle *currentBundle = [NSBundle bundleForClass:[self class]];
         NSURL *bundleUrl = [currentBundle URLForResource:ResourceBundle withExtension:BundleExtension];
-
+        
         NSBundle *imageBundle = [NSBundle bundleWithURL:bundleUrl];
-
+        
         // Use microphone image when the user speaks.
         UIImage *temp = [UIImage imageNamed:MicrophoneImageKey inBundle:imageBundle compatibleWithTraitCollection:nil];
         self.microphoneImage =  [temp imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
         [self setButtonImage:self.microphoneImage imageTintColor:self.microphoneImageColor animated:NO];
         [imageButton addTarget:self action:@selector(startMonitoring:) forControlEvents:UIControlEventTouchDown];
-        [self startMonitoring:nil];
-
+        
         imageButton.imageView.tintColor = self.microphoneImageColor;
-
+        
         // Use listen image when Lex speaks.
         temp = [UIImage imageNamed:LexSpeakImageKey inBundle:imageBundle compatibleWithTraitCollection:nil];
         self.listenImage =  [temp imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-
+        
         lightGrey = [UIColor colorWithWhite:0 alpha:0.2];
         [self addShapeLayer];
         [self addSubview:imageButton];
@@ -276,16 +275,16 @@ static NSString *BackgroundLayerStrokeColorUserInfoKey = @"backgroundLayer.strok
         [self.interactionKit.configuration addUserAgentProductToken:VoiceButtonUserAgent];
         [self setDelegates];
     }
-
+    
     NSError *audioSessionError;
     AWSLexAudioSession *session = [AWSLexAudioSession sharedInstance];
     [session setPlayAndRecordCategory:&audioSessionError];
-
+    
     if(audioSessionError){
         [self handleError:audioSessionError];
         return;
     }
-
+    
     [session requestRecordPermission:^(BOOL granted) {
         canListen = granted;
         if(granted) {
@@ -298,9 +297,6 @@ static NSString *BackgroundLayerStrokeColorUserInfoKey = @"backgroundLayer.strok
 }
 
 - (void)handleError:(NSError *)error{
-    [self.interactionKit cancel];
-    [self startMonitoring:nil];
-
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.delegate voiceButton:self onError:error];
     });
@@ -348,24 +344,24 @@ static NSString *BackgroundLayerStrokeColorUserInfoKey = @"backgroundLayer.strok
     [self.backgroundLayer setStrokeEnd:1];
     [self.layer addSublayer:self.backgroundLayer];
     center = imageButton.center;
-
+    
     self.rightShapeLayer = [CAShapeLayer layer];
     self.leftShapeLayer = [CAShapeLayer layer];
     CGFloat startAngle = M_PI_2;
     CGFloat endAngle = -M_PI_2;
-
+    
     for (CAShapeLayer *shapeLayer in @[self.rightShapeLayer, self.leftShapeLayer]) {
         [shapeLayer setStrokeColor:[imageButton.imageView.tintColor CGColor]];
         [shapeLayer setFillColor:nil];
         [shapeLayer setLineWidth:LINE_WIDTH];
         [self.layer addSublayer:shapeLayer];
-
+        
         UIBezierPath *bezierPath = [UIBezierPath bezierPath];
         [bezierPath addArcWithCenter:imageButton.center radius:RADIUS
                           startAngle:startAngle
                             endAngle:endAngle
                            clockwise:shapeLayer == self.leftShapeLayer];
-
+        
         [shapeLayer setPath:[bezierPath CGPath]];
         [shapeLayer setStrokeEnd:0];
     }
@@ -383,7 +379,7 @@ static NSString *BackgroundLayerStrokeColorUserInfoKey = @"backgroundLayer.strok
         _progressLayer.fillColor = nil;
         _progressLayer.lineWidth = LINE_WIDTH;
         _progressLayer.hidden = YES;
-
+        
         UIBezierPath *circlePath = [UIBezierPath bezierPath];
         [circlePath addArcWithCenter:imageButton.center radius:RADIUS startAngle:-M_PI_4 endAngle:3 * M_PI_2 clockwise:YES];
         _progressLayer.path = circlePath.CGPath;
@@ -454,7 +450,7 @@ static NSString *BackgroundLayerStrokeColorUserInfoKey = @"backgroundLayer.strok
         isAnimating = YES;//fake animation so that next step succeeds
         isListening = NO;
         [self stopProgress];
-
+        
         NSDictionary *userInfo;
         // If AWSLexInteractionKitErrorCodeDialogFailed is encountered, audio would be playing.
         // for the rest of errors, we would want to use microphone color.
@@ -470,7 +466,7 @@ static NSString *BackgroundLayerStrokeColorUserInfoKey = @"backgroundLayer.strok
                 BackgroundLayerStrokeColorUserInfoKey: lightGrey
             };
         }
-
+        
         self.backgroundLayer.strokeColor = [self.errorColor CGColor];
         imageButton.imageView.tintColor = self.errorColor;
         //start a timer for a few secs to display error code to reset the error mode.
@@ -480,11 +476,8 @@ static NSString *BackgroundLayerStrokeColorUserInfoKey = @"backgroundLayer.strok
                                        userInfo:userInfo
                                         repeats:NO];
     });
-
+    
     if(self.delegate && [self.delegate respondsToSelector:@selector(voiceButton:onError:)]){
-        NSLog(@"TU CIE MAM GAGATKU");
-        [self.interactionKit cancel];
-        [self startMonitoring:nil];
         [self.delegate voiceButton:self onError:error];
     }
 }
@@ -498,10 +491,10 @@ static NSString *BackgroundLayerStrokeColorUserInfoKey = @"backgroundLayer.strok
 - (void)interactionKit:(AWSLexInteractionKit *)interactionKit
        switchModeInput:(AWSLexSwitchModeInput *)switchModeInput
       completionSource:(AWSTaskCompletionSource<AWSLexSwitchModeResponse *> *)completionSource{
-
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         [self stopProgress];
-
+        
         if(self.delegate && [self.delegate respondsToSelector:@selector(voiceButton:onResponse:)]){
             AWSLexVoiceButtonResponse *response = [[AWSLexVoiceButtonResponse alloc] initWithOutputText:switchModeInput.outputText
                                                                                                  intent:switchModeInput.intent
@@ -515,7 +508,7 @@ static NSString *BackgroundLayerStrokeColorUserInfoKey = @"backgroundLayer.strok
             [self.delegate voiceButton:self onResponse:response];
         }
     });
-
+    
     AWSLexSwitchModeResponse *switchModeResponse = [AWSLexSwitchModeResponse new];
     [switchModeResponse setInteractionMode:AWSLexInteractionModeSpeech];
     [switchModeResponse setSessionAttributes:switchModeResponse.sessionAttributes];
