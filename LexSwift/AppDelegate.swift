@@ -34,8 +34,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let chatConfig = AWSLexInteractionKitConfig.defaultInteractionKitConfig(withBotName: BotName, botAlias: BotAlias)
         chatConfig.encoding = AWSLexSpeechEncoding.LPCM
         AWSLexInteractionKit.register(with: configuration!, interactionKitConfiguration: chatConfig, forKey: "AWSLexVoiceButton")
-        print("Default", chatConfig.endpointingThreshold);
-        print("Startdefault", chatConfig.startpointingThreshold);
+        
         return true
     }
 

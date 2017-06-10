@@ -27,14 +27,12 @@ class VoiceChatViewController: UIViewController, AWSLexVoiceButtonDelegate, AWSL
     override func viewDidLoad() {
         super.viewDidLoad()
         (self.voiceButton as AWSLexVoiceButton).delegate = self
-        startMonitoring()
         AWSLexInteractionKit.init(forKey: "AWSLexVoiceButton").audioPlayerDelegate = self
+        startMonitoring()
     }
     
     func voiceButton(_ button: AWSLexVoiceButton, on response: AWSLexVoiceButtonResponse) {
-        DispatchQueue.main.async(execute: {
-            print("FULL RESPONSE: ", response)
-            
+        DispatchQueue.main.async(execute: {            
             // `inputranscript` is the transcript of the voice input to the operation
             print("Input Transcript: \(response.inputTranscript)")
             if let inputTranscript = response.inputTranscript {
