@@ -18,20 +18,17 @@ import AWSLex
 import UIKit
 
 
-class VoiceChatViewController: UIViewController, AWSLexVoiceButtonDelegate {
+class VoiceChatViewController: UIViewController, AWSLexVoiceButtonDelegate, AWSLexAudioPlayerDelegate {
     
     @IBOutlet weak var voiceButton: AWSLexVoiceButton!
     @IBOutlet weak var input: UILabel!
     @IBOutlet weak var output: UILabel!
-//    weak var interactionKit: AWSLexInteractionKit!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // to chyba powinno dzialac, tylko trzeba jakos zrobic, zeby lecialo w kolko jak sie skonczy konwersacja albo wydupczy error
-        // i ewentualnie jakies sprawdzanie czy w ogole mozna nagrywac (tak jak to robi awslexvoicebutton)
-        //        interactionKit = AWSLexInteractionKit(forKey: "Default")
-        //        interactionKit.audioInAudioOut()
         (self.voiceButton as AWSLexVoiceButton).delegate = self
+        startMonitoring()
+        AWSLexInteractionKit.init(forKey: "AWSLexVoiceButton").audioPlayerDelegate = self
     }
     
     func voiceButton(_ button: AWSLexVoiceButton, on response: AWSLexVoiceButtonResponse) {
@@ -49,7 +46,14 @@ class VoiceChatViewController: UIViewController, AWSLexVoiceButtonDelegate {
     }
     
     public func voiceButton(_ button: AWSLexVoiceButton, onError error: Error) {
-        print("error \(error)")
+        startMonitoring()
+    }
+
+    public func interactionKit(onAudioPlaybackFinished interactionKit: AWSLexInteractionKit) {
+        startMonitoring()
     }
     
+    func startMonitoring() {
+        (self.voiceButton as AWSLexVoiceButton).performSelector(onMainThread: "startMonitoring:", with: nil, waitUntilDone: true)
+    }
 }
